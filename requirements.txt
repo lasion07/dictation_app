@@ -1,0 +1,13 @@
+huggingface_hub==0.20.1
+kenlm==0.2.0
+keyboard==0.13.5
+numpy==1.24.3
+Pillow==10.3.0
+pyctcdecode==0.1.0
+pydub==0.25.1
+pynput==1.7.6
+sounddevice==0.4.6
+SpeechRecognition==3.10.3
+torch==2.0.1
+transformers==4.40.1
+

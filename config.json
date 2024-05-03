@@ -1,0 +1,14 @@
+{
+  "initializer_range": 0.02,
+  "label_smoothing": 0.0,
+  "load_pretrained": false,
+  "model_type": "bert",
+  "num_detect_classes": 4,
+  "pad_token_id": 0,
+  "predictor_dropout": 0.0,
+  "pretrained_name_or_path": "FPTAI/vibert-base-cased",
+  "special_tokens_fix": true,
+  "transformers_version": "4.18.0",
+  "use_cache": true,
+  "vocab_size": 15
+}
