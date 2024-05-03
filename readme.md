@@ -1,0 +1,2 @@
+DICTATION APP USING WAV2VEC 2.0
+© lasion
