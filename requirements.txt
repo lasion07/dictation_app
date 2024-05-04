@@ -1,14 +1,5 @@
-filelock==3.14.0
-huggingface_hub==0.20.1
-kenlm==0.2.0
-keyboard==0.13.5
 numpy==1.24.3
-Pillow==10.3.0
-pyctcdecode==0.1.0
-pydub==0.25.1
-pynput==1.7.6
-sounddevice==0.4.6
-soundfile==0.12.1
+pyaudio==0.2.14
 SpeechRecognition==3.10.3
 streamlit==1.33.0
 streamlit_quill==0.0.3

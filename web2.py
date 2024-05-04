@@ -4,11 +4,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 import io
 import time
 
-import torch
-import kenlm
-import subprocess
 import streamlit as st
-import soundfile as sf
 from speech_recognition import Recognizer, Microphone
 from streamlit_quill import st_quill
 
