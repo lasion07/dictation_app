@@ -6,7 +6,9 @@ import time
 
 import torch
 import kenlm
-from pydub import AudioSegment
+import numpy as np
+import soundfile as sf
+# from pydub import AudioSegment
 from pynput import keyboard
 from pynput.keyboard import Controller
 from pyctcdecode import Alphabet, BeamSearchDecoderCTC, LanguageModel
@@ -60,8 +62,10 @@ def infer(waveform, model, processor, language_model, punctuator) -> list:
 
 def on_press(key):
     global recording
-    if recording == False and key == keyboard.Key.shift:
-        recording = True
+    if key == keyboard.Key.shift:
+        recording = not recording
+        if recording: print("\nYou can start speaking now...")
+        else: print("Paused")
         
 # Input
 
@@ -76,7 +80,7 @@ ngram_lm_model = get_decoder_ngram_model(processor.tokenizer, language_model_pat
 punctuator = Punctuator()
 
 recognizer = Recognizer()
-recognizer.energy_threshold = 400
+# recognizer.energy_threshold = 400
 
 recording = False
 history = []
@@ -88,27 +92,25 @@ listener.start()
 
 start_time = time.time()
 print('Only use English input source to avoid typo')
+print("\nYou can start speaking now...")
 
 with Microphone(sample_rate=16000) as source:
   while True:
     if not recording:
-      print('Press Shift to start record', end='\r')
-      time.sleep(1)
-      continue
-
-    recording = False
-    print("\nYou can start speaking now...")
-    audio = recognizer.listen(source, phrase_time_limit=3) # Bytes
+       continue
     
-    data = io.BytesIO(audio.get_wav_data()) # Object(Bytes) Ex: 96300
-    audio = AudioSegment.from_file(data) # Object(Object) Ex: 96300
-    waveform = torch.FloatTensor(audio.get_array_of_samples()) # Tensor(Array(Int)) Ex: 48128 =>  1 Int = 2 Bytes
+    audio_data = recognizer.listen(source, phrase_time_limit=2) # Bytes
+    # print(recognizer.energy_threshold)
+
+    wav_bytes = audio_data.get_wav_data()
+    wav_stream = io.BytesIO(wav_bytes)
+    audio_array, sampling_rate = sf.read(wav_stream)
+    waveform = torch.FloatTensor(audio_array)
+    # breakpoint()
 
     start_time = time.time()
     transcription = infer(waveform, model, processor, ngram_lm_model, punctuator)
-    end_time = time.time() - start_time
-    
-    print('After added punctuation:', transcription, end_time)
+    print('After added punctuation:', transcription, time.time() - start_time)
 
     history.append(transcription)
 

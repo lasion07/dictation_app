@@ -8,13 +8,14 @@ import torch
 import kenlm
 import subprocess
 import streamlit as st
-from bs4 import BeautifulSoup
-from pydub import AudioSegment
-from pyctcdecode import Alphabet, BeamSearchDecoderCTC, LanguageModel
-from punctuator import Punctuator
+import soundfile as sf
+# from bs4 import BeautifulSoup
+# from pydub import AudioSegment
+# from pyctcdecode import Alphabet, BeamSearchDecoderCTC, LanguageModel
+# from punctuator import Punctuator
 from speech_recognition import Recognizer, Microphone
 from streamlit_quill import st_quill
-from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC
+# from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC
 
 
 st.set_page_config(page_title="Nhập văn bản bằng giọng nói", page_icon="🎙️")
@@ -120,10 +121,10 @@ if __name__ == "__main__":
     }
     
     if language[option] == 'vi':
-        model, processor = load_wav2vec2('nguyenvulebinh/wav2vec2-base-vietnamese-250h')
-        ngram_lm_model = get_decoder_ngram_model(processor.tokenizer, 'models/vi_lm_4grams.bin')
-        punctuator = load_punctuator()
-        # pass
+        # model, processor = load_wav2vec2('nguyenvulebinh/wav2vec2-base-vietnamese-250h')
+        # ngram_lm_model = get_decoder_ngram_model(processor.tokenizer, 'models/vi_lm_4grams.bin')
+        # punctuator = load_punctuator()
+        pass
     else:
         st.error('Ngôn ngữ chưa được hỗ trợ')
         st.stop()
@@ -166,10 +167,21 @@ if __name__ == "__main__":
 
     if st.button("Ghi âm", type="primary", use_container_width=True) and not st.session_state['recording']:
         st.session_state['recording'] = True
-        st.toast("Hãy bắt đầu nói...")
-        transcription, runtime = pipeline(recognizer, model, processor, ngram_lm_model, punctuator)
-        st.toast(f"Kết quả trả về sau {runtime} giây")
-        st.session_state['content'] = content + transcription + ' '
+        with Microphone(sample_rate=16000) as source:
+            st.toast("Hãy bắt đầu nói...")
+            audio_data = recognizer.listen(source, phrase_time_limit=3)
+            wav_bytes = audio_data.get_wav_data()
+            # wav_stream = io.BytesIO(wav_bytes)
+            # audio_array, sampling_rate = sf.read(wav_stream)
+            # waveform = torch.FloatTensor(audio_array)
+
+            st.audio(wav_bytes)
+        # transcription, runtime = pipeline(recognizer, model, processor, ngram_lm_model, punctuator)
+        # st.toast(f"Kết quả trả về sau {runtime} giây")
+        # if content[-4:] == '</p>':
+        #     st.session_state['content'] = content[:-4] + transcription + ' ' + '</p>'
+        # else:
+        #     st.session_state['content'] = content + transcription + ' '
         st.session_state['recording'] = False
-        st.rerun()
+        # st.rerun()
 
