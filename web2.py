@@ -21,85 +21,11 @@ if 'content' not in st.session_state:
 if 'recording' not in st.session_state:
     st.session_state['recording'] = False
 
-@st.cache_resource()
-def to_text(html_content):
-    soup = BeautifulSoup(html_content, features="html.parser")
-    return soup.get_text()
-
-@st.cache_data() # Disable for Debugging
-def load_wav2vec2(checkpoint):
-    model = Wav2Vec2ForCTC.from_pretrained(checkpoint)
-    processor = Wav2Vec2Processor.from_pretrained(checkpoint)
-    return model, processor
-
-@st.cache_resource() # Disable for Debugging
-def get_decoder_ngram_model(_tokenizer, ngram_lm_path):
-    tokenizer = _tokenizer
-    vocab_dict = tokenizer.get_vocab()
-    sort_vocab = sorted((value, key) for (key, value) in vocab_dict.items())
-    vocab = [x[1] for x in sort_vocab][:-2]
-    vocab_list = vocab
-    # convert ctc blank character representation
-    vocab_list[tokenizer.pad_token_id] = ""
-    # replace special characters
-    vocab_list[tokenizer.unk_token_id] = ""
-    # vocab_list[tokenizer.bos_token_id] = ""
-    # vocab_list[tokenizer.eos_token_id] = ""
-    # convert space character representation
-    vocab_list[tokenizer.word_delimiter_token_id] = " "
-    # specify ctc blank char index, since conventially it is the last entry of the logit matrix
-    alphabet = Alphabet.build_alphabet(vocab_list, ctc_token_idx=tokenizer.pad_token_id)
-    lm_model = kenlm.Model(ngram_lm_path)
-    decoder = BeamSearchDecoderCTC(alphabet,
-                                language_model=LanguageModel(lm_model))
-    
-    return decoder
-
-@st.cache_resource() # Disable for Debugging
-def load_punctuator():
-    punctuator = Punctuator()
-    return punctuator
-
 @st.cache_resource() # Disable for Debugging
 def load_recognizer():
     recognizer = Recognizer()
     recognizer.energy_threshold = 400
     return recognizer
-
-def infer(waveform, model, processor, language_model, punctuator) -> list:
-    # tokenize
-    input_values = processor(waveform, sampling_rate=16000, return_tensors="pt").input_values
-
-    # retrieve logits
-    with torch.no_grad():
-        logits = model(input_values).logits[0]
-
-    # take argmax and decode
-    pred_ids = torch.argmax(logits, dim=-1)
-    greedy_search_output = processor.decode(pred_ids)
-    beam_search_output = language_model.decode(logits.cpu().detach().numpy(), beam_width=500)
-    print("Greedy search output: {}".format(greedy_search_output))
-    print("Beam search output: {}".format(beam_search_output))
-
-    result = punctuator.process(beam_search_output)[0]
-
-    # breakpoint()
-
-    return result
-
-def pipeline(recognizer, model, processor, ngram_lm_model, punctuator):
-    with Microphone(sample_rate=16000) as source:
-        audio = recognizer.listen(source, phrase_time_limit=3) # Bytes
-
-        data = io.BytesIO(audio.get_wav_data()) # Object(Bytes) Ex: 96300
-        audio = AudioSegment.from_file(data) # Object(Object) Ex: 96300
-        waveform = torch.FloatTensor(audio.get_array_of_samples()) # Tensor(Array(Int)) Ex: 48128 =>  1 Int = 2 Bytes
-
-        start_time = time.time()
-        transcription = infer(waveform, model, processor, ngram_lm_model, punctuator)
-        end_time = time.time()
-    
-    return transcription, end_time - start_time
 
 if __name__ == "__main__":
     st.sidebar.title("Nhập văn bản bằng giọng nói v1.0")
