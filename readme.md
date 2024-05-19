@@ -1,7 +1,17 @@
 # DICTATION APP USING WAV2VEC 2.0
-© lasion
 
 In a formal ASR system, two components are required: acoustic model and language model. Here ctc-wav2vec fine-tuned model works as an acoustic model. For the language model, [author](https://github.com/vietai/ASR) provide a [4-grams model](https://huggingface.co/nguyenvulebinh/wav2vec2-base-vietnamese-250h/blob/main/vi_lm_4grams.bin.zip) trained on 2GB of spoken text.
+**Please put 4-grams model into "models" directory**
+
+# Dependences
+```
+    pip install -r requirements.txt
+```
+
+# Usage
+```
+    fastapi run main.py
+```
 
 # REFENECES
 ```
